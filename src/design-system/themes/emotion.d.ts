@@ -1,9 +1,7 @@
 import '@emotion/react';
-import type { TokenDictionary, ThemeMode } from '../tokens';
+import { M3Theme } from './M3ThemeProvider'; // Import the actual theme interface
 
 declare module '@emotion/react' {
-  export interface Theme {
-    tokens: TokenDictionary;
-    mode: ThemeMode;
-  }
+  // Extend the default Theme interface with our M3Theme
+  export interface Theme extends M3Theme {}
 }
