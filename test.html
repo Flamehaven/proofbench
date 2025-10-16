@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProofBench Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 20px;
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 ProofBench Development Server Test</h1>
+
+        <div class="status">
+            <strong>Status:</strong> Development server is running
+            <br><br>
+            <strong>URL:</strong> <a href="http://localhost:5173">http://localhost:5173</a>
+            <br><br>
+            <strong>Next Steps:</strong>
+            <ol>
+                <li>If you see this page, the server is working</li>
+                <li>Check browser console (F12) for React errors</li>
+                <li>Verify all dependencies are installed: <code>npm install</code></li>
+            </ol>
+        </div>
+
+        <h2>Quick Diagnostics</h2>
+        <ul>
+            <li><strong>Node version:</strong> Check with <code>node --version</code></li>
+            <li><strong>NPM version:</strong> Check with <code>npm --version</code></li>
+            <li><strong>Dependencies:</strong> Run <code>npm install</code></li>
+            <li><strong>Browser console:</strong> Press F12 and check for errors</li>
+        </ul>
+
+        <a href="/" class="button">Go to Main App</a>
+    </div>
+
+    <script>
+        console.log('[Test Page] If you see this, JavaScript is working');
+        console.log('[Test Page] React app should load at /');
+
+        // Test fetch to main app
+        fetch('/')
+            .then(res => res.text())
+            .then(html => {
+                console.log('[Test Page] Main app HTML loaded successfully');
+                console.log('[Test Page] HTML length:', html.length);
+            })
+            .catch(err => {
+                console.error('[Test Page] Failed to load main app:', err);
+            });
+    </script>
+</body>
+</html>

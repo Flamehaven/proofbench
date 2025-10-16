@@ -1,0 +1,53 @@
+{
+  "name": "proofbench-3.7.2",
+  "version": "3.7.2",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "api:check": "node scripts/api-health-check.mjs",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@tanstack/react-query": "^5.90.2",
+    "d3": "^7.9.0",
+    "d3-graphviz": "^5.6.0",
+    "lodash": "^4.17.21",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^4.1.1",
+    "@emotion/babel-plugin": "^11.13.5",
+    "@faker-js/faker": "^8.4.1",
+    "@mswjs/data": "^0.15.0",
+    "@storybook/addon-a11y": "^9.1.10",
+    "@types/d3": "^7.4.3",
+    "@storybook/addon-docs": "^9.1.10",
+    "@storybook/addon-onboarding": "^9.1.10",
+    "@storybook/react-vite": "^9.1.10",
+    "@types/lodash": "^4.17.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^2.0.1",
+    "dotenv": "^17.2.3",
+    "jsdom": "^27.0.0",
+    "msw": "^2.4.9",
+    "msw-storybook-addon": "^2.0.0",
+    "storybook": "^9.1.10",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vitest": "^2.0.1"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}
