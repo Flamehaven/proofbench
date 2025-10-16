@@ -1,0 +1,111 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+*.lcov
+.nyc_output
+junit.xml
+test-results/
+*.log
+
+# Production Build
+dist/
+build/
+*.tsbuildinfo
+
+# Storybook
+storybook-static/
+.storybook-out/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist-python/
+build-python/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+
+# Temporary files
+*.swp
+*.swo
+*~
+.cache/
+.temp/
+tmp/
+
+# Build artifacts
+*.tgz
+*.tar.gz
+*.zip
+
+# Backend specific
+backend/.env
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+backend/coverage.xml
+backend/pytest-results.xml
+backend/.mypy_cache/
+backend/.ruff_cache/
+
+# Development artifacts
+nul
+*.bak.py
+*.backup
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Package manager locks (optional - uncomment if needed)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # Frontend application
+  proofbench-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: proofbench-app
+    ports:
+      - "3000:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_BASE_URL=${API_BASE_URL:-http://localhost:3001/api/v1}
+      - VITE_API_MODE=${API_MODE:-mock}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - proofbench-network
+
+  # Optional: Backend API service (placeholder)
+  # proofbench-backend:
+  #   image: proofbench-backend:latest
+  #   container_name: proofbench-api
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - JWT_SECRET=${JWT_SECRET}
+  #   restart: unless-stopped
+  #   networks:
+  #     - proofbench-network
+
+networks:
+  proofbench-network:
+    driver: bridge
+
+volumes:
+  proofbench-data:
+    driver: local
