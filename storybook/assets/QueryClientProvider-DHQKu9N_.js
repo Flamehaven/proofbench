@@ -1,1 +1,0 @@
-import{r as t}from"./iframe-D-Zi2FPS.js";import"./jsx-runtime-Dbp9ZD_N.js";var r=t.createContext(void 0),u=o=>{const e=t.useContext(r);if(!e)throw new Error("No QueryClient set, use QueryClientProvider to set one");return e};export{u};
