@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, forwardRef } from "react";
 import styled from "@emotion/styled";
 import { createPortal } from "react-dom";
+import { css, Theme } from "@emotion/react";
 
 type ModalSize = "sm" | "md" | "lg";
 type DrawerSize = "sm" | "md" | "lg" | "full";
@@ -34,9 +35,8 @@ export interface DrawerProps {
 const Overlay = styled("div")(({ theme }) => ({
   position: "fixed",
   inset: 0,
-  zIndex: theme.tokens.token.zIndex.overlay,
-  backgroundColor:
-    theme.tokens.token.color.background.overlay.default[theme.mode],
+  zIndex: 1000, // M3 uses defined z-index tokens, using a common value here.
+  backgroundColor: `color-mix(in srgb, ${theme.colors.scrim} 40%, transparent)`,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -55,10 +55,9 @@ const ModalContainer = styled("div")<{
     width: "90%",
     maxWidth: sizeMap[size],
     maxHeight: "90vh",
-    backgroundColor:
-      theme.tokens.token.color.background.primary.default[theme.mode],
-    borderRadius: theme.tokens.token.borderRadius.lg,
-    boxShadow: theme.tokens.token.shadow.overlay.raised[theme.mode],
+    backgroundColor: theme.colors.surface,
+    borderRadius: theme.borderRadius.lg,
+    boxShadow: theme.elevation.level3,
     display: "grid",
     gridTemplateRows: "auto 1fr auto",
     overflow: "hidden",
@@ -78,10 +77,9 @@ const DrawerContainer = styled("div")<{
 
   const base = {
     position: "fixed" as const,
-    backgroundColor:
-      theme.tokens.token.color.background.primary.default[theme.mode],
-    boxShadow: theme.tokens.token.shadow.overlay.raised[theme.mode],
-    zIndex: theme.tokens.token.zIndex.modal,
+    backgroundColor: theme.colors.surface,
+    boxShadow: theme.elevation.level3,
+    zIndex: 1100,
     display: "flex",
     flexDirection: "column" as const,
   };
@@ -129,29 +127,36 @@ const Header = styled("header")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: `${theme.tokens.token.spacing.md} ${theme.tokens.token.spacing.lg}`,
-  gap: theme.tokens.token.spacing.sm,
+  padding: `${theme.spacing(2)} ${theme.spacing(3)}`,
+  gap: theme.spacing(2),
+  borderBottom: `1px solid ${theme.colors.outlineVariant}`,
 }));
 
 const Body = styled("div")(({ theme }) => ({
-  padding: `0 ${theme.tokens.token.spacing.lg}`,
+  padding: theme.spacing(3),
   overflowY: "auto",
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  color: theme.colors.onSurface,
 }));
 
 const Footer = styled("footer")(({ theme }) => ({
   display: "flex",
   justifyContent: "flex-end",
-  gap: theme.tokens.token.spacing.sm,
-  padding: `${theme.tokens.token.spacing.md} ${theme.tokens.token.spacing.lg}`,
+  gap: theme.spacing(1),
+  padding: `${theme.spacing(2)} ${theme.spacing(3)}`,
+  borderTop: `1px solid ${theme.colors.outlineVariant}`,
 }));
 
 const CloseButton = styled("button")(({ theme }) => ({
   border: "none",
   background: "transparent",
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  color: theme.colors.onSurfaceVariant,
   cursor: "pointer",
-  fontSize: theme.tokens.token.font.size.md,
+  ...theme.typography.titleLarge,
+  padding: theme.spacing(1),
+  borderRadius: theme.borderRadius.full,
+  "&:hover": {
+    backgroundColor: `color-mix(in srgb, ${theme.colors.onSurface} 8%, transparent)`,
+  }
 }));
 
 function useModalLifecycle(
@@ -199,121 +204,136 @@ function useModalLifecycle(
   }, [isOpen, onClose, options.initialFocusRef, options.finalFocusRef, options.closeOnEsc]);
 }
 
-export function Modal({
-  isOpen,
-  onClose,
-  title,
-  size = "md",
-  hideCloseButton = false,
-  children,
-  initialFocusRef,
-  finalFocusRef,
-  closeOnEsc = true,
-  closeOnOverlayClick = true,
-}: ModalProps): JSX.Element | null {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useModalLifecycle(isOpen, onClose, {
-    initialFocusRef,
-    finalFocusRef,
-    closeOnEsc,
-  });
+export const Modal = forwardRef<HTMLDivElement, ModalProps>(
+  (
+    {
+      isOpen,
+      onClose,
+      title,
+      size = "md",
+      hideCloseButton = false,
+      children,
+      initialFocusRef,
+      finalFocusRef,
+      closeOnEsc = true,
+      closeOnOverlayClick = true,
+    },
+    ref
+  ) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    useModalLifecycle(isOpen, onClose, {
+      initialFocusRef: initialFocusRef ?? containerRef,
+      finalFocusRef,
+      closeOnEsc,
+    });
 
-  if (!isOpen) {
-    return null;
-  }
+    if (!isOpen) {
+      return null;
+    }
 
-  const content = (
-    <Overlay
-      role="presentation"
-      onMouseDown={(event) => {
-        if (
-          closeOnOverlayClick &&
-          event.target === event.currentTarget
-        ) {
-          onClose();
-        }
-      }}
-    >
-      <ModalContainer
-        ref={containerRef}
-        size={size}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? "modal-title" : undefined}
-        data-modal-root
+    const content = (
+      <Overlay
+        role="presentation"
+        onMouseDown={(event) => {
+          if (
+            closeOnOverlayClick &&
+            event.target === event.currentTarget
+          ) {
+            onClose();
+          }
+        }}
       >
-        <Header>
-          {title && (
-            <h2 id="modal-title" style={{ margin: 0 }}>
-              {title}
-            </h2>
-          )}
-          {!hideCloseButton && (
-            <CloseButton
-              type="button"
-              onClick={onClose}
-              aria-label="Close modal"
-            >
-              ×
-            </CloseButton>
-          )}
-        </Header>
-        <Body>{children}</Body>
-        <Footer />
-      </ModalContainer>
-    </Overlay>
-  );
+        <ModalContainer
+          ref={ref ?? containerRef}
+          size={size}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? "modal-title" : undefined}
+          data-modal-root
+        >
+          <Header>
+            {title && (
+              <h2 id="modal-title" style={{ margin: 0 }}>
+                {title}
+              </h2>
+            )}
+            {!hideCloseButton && (
+              <CloseButton
+                type="button"
+                onClick={onClose}
+                aria-label="Close modal"
+              >
+                ×
+              </CloseButton>
+            )}
+          </Header>
+          <Body>{children}</Body>
+        </ModalContainer>
+      </Overlay>
+    );
 
-  return mountToPortal(content);
-}
-
-export function Drawer({
-  isOpen,
-  onClose,
-  size = "md",
-  position = "right",
-  children,
-  initialFocusRef,
-  finalFocusRef,
-  closeOnEsc = true,
-  closeOnOverlayClick = true,
-}: DrawerProps): JSX.Element | null {
-  useModalLifecycle(isOpen, onClose, {
-    initialFocusRef,
-    finalFocusRef,
-    closeOnEsc,
-  });
-
-  if (!isOpen) {
-    return null;
+    return mountToPortal(content);
   }
+);
 
-  const content = (
-    <Overlay
-      role="presentation"
-      onMouseDown={(event) => {
-        if (
-          closeOnOverlayClick &&
-          event.target === event.currentTarget
-        ) {
-          onClose();
-        }
-      }}
-    >
-      <DrawerContainer
-        size={size}
-        position={position}
-        role="dialog"
-        aria-modal="true"
-        data-modal-root
+Modal.displayName = "Modal";
+
+export const Drawer = forwardRef<HTMLDivElement, DrawerProps>(
+  (
+    {
+      isOpen,
+      onClose,
+      size = "md",
+      position = "right",
+      children,
+      initialFocusRef,
+      finalFocusRef,
+      closeOnEsc = true,
+      closeOnOverlayClick = true,
+    },
+    ref
+  ) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    useModalLifecycle(isOpen, onClose, {
+      initialFocusRef: initialFocusRef ?? containerRef,
+      finalFocusRef,
+      closeOnEsc,
+    });
+
+    if (!isOpen) {
+      return null;
+    }
+
+    const content = (
+      <Overlay
+        role="presentation"
+        onMouseDown={(event) => {
+          if (
+            closeOnOverlayClick &&
+            event.target === event.currentTarget
+          ) {
+            onClose();
+          }
+        }}
       >
-        {children}
-      </DrawerContainer>
-    </Overlay>
-  );
+        <DrawerContainer
+          ref={ref ?? containerRef}
+          size={size}
+          position={position}
+          role="dialog"
+          aria-modal="true"
+          data-modal-root
+        >
+          {children}
+        </DrawerContainer>
+      </Overlay>
+    );
 
-  return mountToPortal(content);
-}
+    return mountToPortal(content);
+  }
+);
+
+Drawer.displayName = "Drawer";
 
 function mountToPortal(node: React.ReactNode): JSX.Element {
   if (typeof document === "undefined") {
@@ -329,11 +349,3 @@ function mountToPortal(node: React.ReactNode): JSX.Element {
 
   return createPortal(node, portalRoot);
 }
-
-Modal.Header = Header;
-Modal.Body = Body;
-Modal.Footer = Footer;
-
-Drawer.Header = Header;
-Drawer.Body = Body;
-Drawer.Footer = Footer;

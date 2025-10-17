@@ -31,78 +31,76 @@ const BaseButton = styled("button")<{
   size: ButtonSize;
   isLoading: boolean;
 }>(({ theme, variant, size, isLoading }) => {
-  const { tokens } = theme;
-  const spacing = tokens.token.spacing;
-  const fontSizes = tokens.token.font.size;
+  // NEW M3 THEME STRUCTURE
+  const { colors, spacing, borderRadius, typography, transitions, elevation } = theme;
 
-  const paddings = sizeMap[size];
+  const sizeStyles = {
+    sm: {
+      ...typography.labelLarge,
+      height: '32px',
+      padding: `0 ${spacing(2)}`, // 16px
+    },
+    md: {
+      ...typography.labelLarge,
+      height: '40px',
+      padding: `0 ${spacing(3)}`, // 24px
+    },
+    lg: {
+      ...typography.titleMedium,
+      height: '48px',
+      padding: `0 ${spacing(4)}`, // 32px
+    },
+  };
 
   const baseStyles = {
+    ...sizeStyles[size],
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing.xs,
-    borderRadius: tokens.token.borderRadius.md,
-    fontWeight: tokens.token.font.weight.medium,
-    fontSize: fontSizes[size === "sm" ? "sm" : size === "md" ? "md" : "lg"],
-    lineHeight: 1.2,
-    padding:
-      variant === "icon-only"
-        ? `${spacing.xs}`
-        : `${spacing.xs} ${paddings.padding.split(" ")[1]}`,
-    height: size === "sm" ? "32px" : size === "md" ? "36px" : "44px",
-    minWidth: variant === "icon-only" ? heightBySize(size) : "auto",
-    cursor: isLoading ? "wait" : "pointer",
-    transition: `background-color ${tokens.token.motion.duration.fast} ${tokens.token.motion.easing.standard},
-      color ${tokens.token.motion.duration.fast} ${tokens.token.motion.easing.standard},
-      box-shadow ${tokens.token.motion.duration.fast} ${tokens.token.motion.easing.standard}`,
+    gap: spacing(1), // 8px
+    borderRadius: borderRadius.full, // Pill shape
+    fontWeight: typography.labelLarge.fontWeight, // from theme
     border: "1px solid transparent",
+    cursor: isLoading ? "wait" : "pointer",
+    transition: `background-color ${transitions.duration.short} ${transitions.easing.easeInOut}, color ${transitions.duration.short} ${transitions.easing.easeInOut}, box-shadow ${transitions.duration.short} ${transitions.easing.easeInOut}`,
     textDecoration: "none",
     userSelect: "none" as const,
     position: "relative" as const,
+    "&:disabled": {
+      backgroundColor: `color-mix(in srgb, ${colors.onSurface} 12%, transparent)`,
+      color: `color-mix(in srgb, ${colors.onSurface} 38%, transparent)`,
+      borderColor: 'transparent',
+      cursor: "not-allowed",
+    },
   };
 
   const variantStyles: Record<ButtonVariant, ReturnType<typeof css>> = {
     "icon-only": css({
-      padding: spacing.xs,
-      width: heightBySize(size),
+      padding: spacing(1.5), // 12px
+      width: sizeStyles[size].height,
+      minWidth: sizeStyles[size].height,
     }),
     primary: css({
-      backgroundColor:
-        tokens.token.color.background.interactive.default[theme.mode],
-      color: tokens.token.color.background.primary.default.light,
-      "&:hover": {
-        backgroundColor:
-          tokens.token.color.background.interactive.hover[theme.mode],
-      },
-      "&:disabled": {
-        backgroundColor: tokens.token.color.background.interactive.default.light,
-        opacity: tokens.token.opacity.disabled,
-        cursor: "not-allowed",
+      backgroundColor: colors.primary,
+      color: colors.onPrimary,
+      "&:hover:not(:disabled)": {
+        boxShadow: elevation.level1,
+        backgroundColor: `color-mix(in srgb, ${colors.primary} 92%, black)`,
       },
     }),
     secondary: css({
       backgroundColor: "transparent",
-      color: tokens.token.color.background.interactive.default[theme.mode],
-      borderColor: tokens.token.color.background.interactive.default[theme.mode],
-      "&:hover": {
-        backgroundColor: tokens.token.color.background.primary.subtle[theme.mode],
-      },
-      "&:disabled": {
-        borderColor: tokens.token.color.text.primary.muted[theme.mode],
-        color: tokens.token.color.text.primary.muted[theme.mode],
-        cursor: "not-allowed",
+      color: colors.primary,
+      borderColor: colors.outline,
+      "&:hover:not(:disabled)": {
+        backgroundColor: `color-mix(in srgb, ${colors.primary} 8%, transparent)`,
       },
     }),
     ghost: css({
       backgroundColor: "transparent",
-      color: tokens.token.color.text.primary.default[theme.mode],
-      "&:hover": {
-        backgroundColor: tokens.token.color.background.primary.subtle[theme.mode],
-      },
-      "&:disabled": {
-        color: tokens.token.color.text.primary.muted[theme.mode],
-        cursor: "not-allowed",
+      color: colors.primary,
+      "&:hover:not(:disabled)": {
+        backgroundColor: `color-mix(in srgb, ${colors.primary} 8%, transparent)`,
       },
     }),
   };

@@ -1,12 +1,11 @@
 import styled from "@emotion/styled";
-import { css } from "@emotion/react";
+import { css, Theme } from "@emotion/react";
 import {
   createContext,
   forwardRef,
   useContext,
   useId,
   useMemo,
-  useState,
 } from "react";
 
 type FieldStatus = "default" | "error" | "success" | "loading";
@@ -35,104 +34,98 @@ export interface FormFieldProps {
 
 const Wrapper = styled("label")(({ theme }) => ({
   display: "grid",
-  gap: theme.tokens.token.spacing.xs,
-  fontSize: theme.tokens.token.font.size.sm,
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  gap: theme.spacing(1),
+  ...theme.typography.bodyMedium,
+  color: theme.colors.onSurface,
 }));
 
 const LabelRow = styled("span")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: theme.tokens.token.spacing.xs,
-  fontWeight: theme.tokens.token.font.weight.medium,
+  gap: theme.spacing(1),
+  fontWeight: theme.typography.titleSmall.fontWeight,
 }));
 
 const RequiredAsterisk = styled("span")(({ theme }) => ({
-  color: theme.tokens.token.color.status.error[theme.mode],
+  color: theme.colors.error,
 }));
 
 const HelperText = styled("span")(({ theme }) => ({
-  color: theme.tokens.token.color.text.primary.subtle[theme.mode],
+  ...theme.typography.bodySmall,
+  color: theme.colors.onSurfaceVariant,
 }));
 
 const ErrorText = styled("span")(({ theme }) => ({
-  color: theme.tokens.token.color.status.error[theme.mode],
-  fontWeight: theme.tokens.token.font.weight.medium,
+  color: theme.colors.error,
+  ...theme.typography.bodySmall,
+  fontWeight: theme.typography.titleSmall.fontWeight,
 }));
 
 const Shell = styled("div")<{
   status: FieldStatus;
   density: FieldDensity;
 }>(({ theme, status, density }) => {
-  const { tokens } = theme;
+  const { colors, spacing, borderRadius, transitions } = theme;
+  
   const borderColor =
     status === "error"
-      ? tokens.token.color.status.error[theme.mode]
+      ? colors.error
       : status === "success"
-        ? tokens.token.color.status.success[theme.mode]
-        : tokens.token.color.text.primary.subtle[theme.mode];
+        ? colors.success
+        : colors.outline;
 
   const base = {
     display: "flex",
     alignItems: "center",
-    gap: tokens.token.spacing.xs,
-    borderRadius: tokens.token.borderRadius.md,
+    gap: spacing(1),
+    borderRadius: borderRadius.md,
     border: `1px solid ${borderColor}`,
-    padding: density === "compact" ? "6px 10px" : "8px 12px",
-    background: tokens.token.color.background.primary.default[theme.mode],
-    transition: `border-color ${tokens.token.motion.duration.fast} ${tokens.token.motion.easing.standard}`,
+    padding: density === "compact" ? `${spacing(0.75)} ${spacing(1.25)}` : `${spacing(1)} ${spacing(1.5)}`,
+    backgroundColor: colors.surface,
+    transition: `border-color ${transitions.duration.short} ${transitions.easing.easeInOut}`,
   };
 
   return [
     base,
     css({
       "&:focus-within": {
-        borderColor: tokens.token.color.status.info[theme.mode],
-        boxShadow: `0 0 0 3px ${tokens.token.color.status.info[theme.mode]}22`,
+        borderColor: colors.primary,
+        boxShadow: `0 0 0 3px color-mix(in srgb, ${colors.primary} 15%, transparent)`,
+      },
+      "input:disabled, textarea:disabled, select:disabled": {
+        backgroundColor: `color-mix(in srgb, ${colors.onSurface} 4%, transparent)`,
       },
       "&:has(input:disabled), &:has(textarea:disabled), &:has(select:disabled)": {
-        opacity: tokens.token.opacity.disabled,
+        opacity: 0.6,
         cursor: "not-allowed",
       },
     }),
   ];
 });
 
-const InputElement = styled("input")(({ theme }) => ({
+const inputElementStyles = (theme: Theme) => ({
   flex: 1,
   border: "none",
   outline: "none",
   background: "transparent",
-  fontSize: theme.tokens.token.font.size.md,
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  ...theme.typography.bodyLarge,
+  color: theme.colors.onSurface,
   "::placeholder": {
-    color: theme.tokens.token.color.text.primary.subtle[theme.mode],
+    color: theme.colors.onSurfaceVariant,
   },
-}));
+});
 
+const InputElement = styled("input")(({ theme }) => inputElementStyles(theme));
 const TextAreaElement = styled("textarea")(({ theme }) => ({
-  flex: 1,
-  border: "none",
-  outline: "none",
-  background: "transparent",
-  fontSize: theme.tokens.token.font.size.md,
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  ...inputElementStyles(theme),
   resize: "vertical",
 }));
-
-const SelectElement = styled("select")(({ theme }) => ({
-  flex: 1,
-  border: "none",
-  outline: "none",
-  background: "transparent",
-  fontSize: theme.tokens.token.font.size.md,
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
-}));
+const SelectElement = styled("select")(({ theme }) => inputElementStyles(theme));
 
 const Affix = styled("span")(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
-  color: theme.tokens.token.color.text.primary.subtle[theme.mode],
+  color: theme.colors.onSurfaceVariant,
 }));
 
 export function FormField({
@@ -278,7 +271,7 @@ export const FormFieldSelect = SelectWrapper;
 function useFormFieldContext(): FormFieldContextValue {
   const context = useContext(FormFieldContext);
   if (!context) {
-    throw new Error("FormField.Input must be used within a FormField");
+    throw new Error("FormField components must be used within a FormField");
   }
   return context;
 }

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import { css } from "@emotion/react";
-import { createContext, useContext } from "react";
+import { css, Theme } from "@emotion/react";
+import { createContext, useContext, forwardRef } from "react";
 
 type CardVariant = "default" | "kpi" | "step-result";
 type CardStatus = "default" | "pass" | "review" | "fail" | "loading";
@@ -11,56 +11,52 @@ interface CardContextValue {
 
 const CardContext = createContext<CardContextValue>({ variant: "default" });
 
-export interface CardProps {
+export interface CardProps extends React.HTMLAttributes<HTMLElement> {
   variant?: CardVariant;
   status?: CardStatus;
   isHoverable?: boolean;
   children: React.ReactNode;
 }
 
+const getStatusBorderColor = (theme: Theme, status: CardStatus) => {
+  const { colors } = theme;
+  switch (status) {
+    case "pass":
+      return colors.success;
+    case "review":
+      return colors.warning;
+    case "fail":
+      return colors.error;
+    default:
+      return colors.outlineVariant;
+  }
+};
+
 const BaseCard = styled("article")<{
   variant: CardVariant;
   status: CardStatus;
   isHoverable: boolean;
 }>(({ theme, variant, status, isHoverable }) => {
-  const { tokens } = theme;
+  const { colors, spacing, borderRadius, elevation, transitions } = theme;
 
-  const background =
-    tokens.token.color.background.primary.default[theme.mode];
-  const borderColor =
-    variant === "step-result" && status !== "default"
-      ? tokens.token.color.status[
-          status === "pass"
-            ? "success"
-            : status === "review"
-              ? "warning"
-              : status === "fail"
-                ? "error"
-                : "info"
-        ][theme.mode]
-      : tokens.token.color.background.primary.subtle[theme.mode];
+  const background = colors.surface;
+  const borderColor = getStatusBorderColor(theme, status);
 
   const variantStyles: Record<CardVariant, ReturnType<typeof css>> = {
     default: css({
-      padding: tokens.token.spacing.lg,
       backgroundColor: background,
       border: `1px solid ${borderColor}`,
-      borderRadius: tokens.token.borderRadius.lg,
-      boxShadow: tokens.token.shadow.card.default[theme.mode],
+      boxShadow: elevation.level1,
     }),
     kpi: css({
-      padding: tokens.token.spacing.lg,
-      backgroundColor: tokens.token.color.background.primary.subtle[theme.mode],
-      borderRadius: tokens.token.borderRadius.lg,
+      backgroundColor: colors.surfaceContainer,
       border: "none",
-      color: tokens.token.color.text.primary.default[theme.mode],
+      color: colors.onSurface,
     }),
     "step-result": css({
-      padding: tokens.token.spacing.lg,
       backgroundColor: background,
-      borderRadius: tokens.token.borderRadius.lg,
       border: `1px solid ${borderColor}`,
-      boxShadow: tokens.token.shadow.card.default[theme.mode],
+      boxShadow: elevation.level1,
     }),
   };
 
@@ -68,14 +64,16 @@ const BaseCard = styled("article")<{
     {
       display: "flex",
       flexDirection: "column",
-      gap: tokens.token.spacing.md,
-      transition: `box-shadow ${tokens.token.motion.duration.fast} ${tokens.token.motion.easing.standard}`,
+      gap: spacing(2),
+      padding: spacing(3),
+      borderRadius: borderRadius.lg,
+      transition: `box-shadow ${transitions.duration.short} ${transitions.easing.easeInOut}`,
     },
     variantStyles[variant],
     isHoverable &&
       css({
         "&:hover": {
-          boxShadow: tokens.token.shadow.card.interactive.hover[theme.mode],
+          boxShadow: elevation.level2,
         },
       }),
   ];
@@ -84,50 +82,63 @@ const BaseCard = styled("article")<{
 const SectionBase = styled("div")(({ theme }) => ({
   display: "flex",
   flexDirection: "column",
-  gap: theme.tokens.token.spacing.sm,
+  gap: theme.spacing(1.5),
 }));
 
-const ActionsBase = styled("div")(({ theme }) => ({
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: theme.tokens.token.spacing.sm,
-}));
-
-export const Card = ({
-  variant = "default",
-  status = "default",
-  isHoverable = false,
-  children,
-}: CardProps): JSX.Element => (
-  <CardContext.Provider value={{ variant }}>
-    <BaseCard variant={variant} status={status} isHoverable={isHoverable}>
-      {children}
-    </BaseCard>
-  </CardContext.Provider>
+export const Card = forwardRef<HTMLElement, CardProps>(
+  (
+    {
+      variant = "default",
+      status = "default",
+      isHoverable = false,
+      children,
+      ...rest
+    },
+    ref
+  ) => (
+    <CardContext.Provider value={{ variant }}>
+      <BaseCard
+        ref={ref}
+        variant={variant}
+        status={status}
+        isHoverable={isHoverable}
+        {...rest}
+      >
+        {children}
+      </BaseCard>
+    </CardContext.Provider>
+  )
 );
+
+Card.displayName = "Card";
 
 export const CardHeader = styled("header")(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: theme.tokens.token.spacing.sm,
-  fontSize: theme.tokens.token.font.size.md,
-  fontWeight: theme.tokens.token.font.weight.semibold,
+  gap: theme.spacing(2),
+  ...theme.typography.titleMedium,
+  color: theme.colors.onSurface,
 }));
 
 export const CardBody = styled(SectionBase)(({ theme }) => ({
-  fontSize: theme.tokens.token.font.size.sm,
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  ...theme.typography.bodyMedium,
+  color: theme.colors.onSurfaceVariant,
 }));
 
 export const CardFooter = styled("footer")(({ theme }) => ({
   display: "flex",
   justifyContent: "flex-end",
-  gap: theme.tokens.token.spacing.sm,
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(2),
 }));
 
 export const CardSection = SectionBase;
 
-export const CardActions = ActionsBase;
+export const CardActions = styled("div")(({ theme }) => ({
+  display: "flex",
+  justifyContent: "flex-end",
+  gap: theme.spacing(1),
+}));
 
 export const useCardVariant = () => useContext(CardContext).variant;

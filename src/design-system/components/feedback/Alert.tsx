@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import styled from "@emotion/styled";
-import { css } from "@emotion/react";
+import { css, Theme } from "@emotion/react";
+import { forwardRef } from "react";
 
 type AlertVariant = "toast" | "banner";
 type AlertBannerLayout = "page" | "inline";
@@ -26,25 +27,54 @@ const statusIconFallback: Record<AlertStatus, string> = {
   info: "ℹ",
 };
 
+const getStatusColors = (theme: Theme, status: AlertStatus) => {
+  const { colors } = theme;
+  switch (status) {
+    case "success":
+      return {
+        background: colors.successContainer,
+        borderColor: colors.success,
+        textColor: colors.onSuccessContainer,
+      };
+    case "warning":
+      return {
+        background: colors.warningContainer,
+        borderColor: colors.warning,
+        textColor: colors.onWarningContainer,
+      };
+    case "error":
+      return {
+        background: colors.errorContainer,
+        borderColor: colors.error,
+        textColor: colors.onErrorContainer,
+      };
+    case "info":
+    default:
+      return {
+        background: colors.secondaryContainer,
+        borderColor: colors.secondary,
+        textColor: colors.onSecondaryContainer,
+      };
+  }
+};
+
 const AlertRoot = styled("div")<{
   variant: AlertVariant;
   layout: AlertBannerLayout;
   status: AlertStatus;
 }>(({ theme, variant, layout, status }) => {
-  const { tokens } = theme;
-  const background =
-    tokens.token.color.status[status][theme.mode] + "20"; // add alpha
-  const borderColor = tokens.token.color.status[status][theme.mode];
+  const { spacing, borderRadius, elevation } = theme;
+  const statusColors = getStatusColors(theme, status);
 
   const common = {
     display: "grid",
     gridTemplateColumns: "auto 1fr auto",
-    gap: tokens.token.spacing.sm,
-    padding: `${tokens.token.spacing.sm} ${tokens.token.spacing.md}`,
-    borderRadius: tokens.token.borderRadius.md,
-    border: `1px solid ${borderColor}`,
-    backgroundColor: background,
-    color: tokens.token.color.text.primary.default[theme.mode],
+    gap: spacing(2),
+    padding: `${spacing(2)} ${spacing(2.5)}`,
+    borderRadius: borderRadius.lg,
+    border: `1px solid ${statusColors.borderColor}`,
+    backgroundColor: statusColors.background,
+    color: statusColors.textColor,
     alignItems: "center",
   };
 
@@ -52,7 +82,7 @@ const AlertRoot = styled("div")<{
     return [
       common,
       css({
-        boxShadow: tokens.token.shadow.overlay.raised[theme.mode],
+        boxShadow: elevation.level2,
         minWidth: "320px",
       }),
     ];
@@ -71,7 +101,7 @@ const IconWrapper = styled("span")(({ theme }) => ({
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: theme.tokens.token.font.size.lg,
+  fontSize: theme.typography.titleLarge.fontSize,
 }));
 
 const ContentWrapper = styled("div")({
@@ -80,73 +110,86 @@ const ContentWrapper = styled("div")({
 });
 
 const Title = styled("p")(({ theme }) => ({
-  fontWeight: theme.tokens.token.font.weight.semibold,
+  ...theme.typography.titleMedium,
   margin: 0,
 }));
 
 const Description = styled("p")(({ theme }) => ({
+  ...theme.typography.bodyMedium,
   margin: 0,
-  fontSize: theme.tokens.token.font.size.sm,
 }));
 
 const DismissButton = styled("button")(({ theme }) => ({
   border: "none",
   background: "transparent",
-  color: theme.tokens.token.color.text.primary.default[theme.mode],
+  color: theme.colors.onSurfaceVariant,
   cursor: "pointer",
-  fontSize: theme.tokens.token.font.size.sm,
+  fontSize: theme.typography.bodyLarge.fontSize,
+  padding: theme.spacing(1),
+  borderRadius: theme.borderRadius.full,
+  "&:hover": {
+    backgroundColor: `color-mix(in srgb, ${theme.colors.onSurface} 8%, transparent)`,
+  }
 }));
 
-export function Alert({
-  variant = "banner",
-  layout = "page",
-  status = "info",
-  title,
-  children,
-  icon,
-  isDismissible = false,
-  duration,
-  onDismiss,
-  roleOverride,
-}: AlertProps): JSX.Element {
-  useEffect(() => {
-    if (variant !== "toast" || !duration || duration === Infinity) {
-      return;
-    }
-    const timer = setTimeout(() => {
-      onDismiss?.();
-    }, duration);
-    return () => clearTimeout(timer);
-  }, [duration, onDismiss, variant]);
+export const Alert = forwardRef<HTMLDivElement, AlertProps>(
+  (
+    {
+      variant = "banner",
+      layout = "page",
+      status = "info",
+      title,
+      children,
+      icon,
+      isDismissible = false,
+      duration,
+      onDismiss,
+      roleOverride,
+    },
+    ref
+  ) => {
+    useEffect(() => {
+      if (variant !== "toast" || !duration || duration === Infinity) {
+        return;
+      }
+      const timer = setTimeout(() => {
+        onDismiss?.();
+      }, duration);
+      return () => clearTimeout(timer);
+    }, [duration, onDismiss, variant]);
 
-  const role =
-    roleOverride ??
-    (status === "error" || status === "warning" ? "alert" : "status");
+    const role =
+      roleOverride ??
+      (status === "error" || status === "warning" ? "alert" : "status");
 
-  return (
-    <AlertRoot
-      variant={variant}
-      layout={layout}
-      status={status}
-      role={role}
-      aria-live={role === "alert" ? "assertive" : "polite"}
-    >
-      <IconWrapper aria-hidden>
-        {icon ?? statusIconFallback[status]}
-      </IconWrapper>
-      <ContentWrapper>
-        {title && <Title>{title}</Title>}
-        {children && <Description>{children}</Description>}
-      </ContentWrapper>
-      {isDismissible && (
-        <DismissButton
-          type="button"
-          onClick={onDismiss}
-          aria-label="Dismiss alert"
-        >
-          ×
-        </DismissButton>
-      )}
-    </AlertRoot>
-  );
-}
+    return (
+      <AlertRoot
+        ref={ref}
+        variant={variant}
+        layout={layout}
+        status={status}
+        role={role}
+        aria-live={role === "alert" ? "assertive" : "polite"}
+      >
+        <IconWrapper aria-hidden>
+          {icon ?? statusIconFallback[status]}
+        </IconWrapper>
+        <ContentWrapper>
+          {title && <Title>{title}</Title>}
+          {children && <Description>{children}</Description>}
+        </ContentWrapper>
+        {isDismissible && (
+          <DismissButton
+            type="button"
+            onClick={onDismiss}
+            aria-label="Dismiss alert"
+          >
+            ×
+          </DismissButton>
+        )}
+      </AlertRoot>
+    );
+  }
+);
+
+Alert.displayName = "Alert";
