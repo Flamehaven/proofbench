@@ -22,8 +22,7 @@ setup(
     url='https://github.com/flamehaven/proofbench',
     license='MIT',
 
-    packages=find_packages(where='python'),
-    package_dir={'': 'python'},
+    packages=find_packages(exclude=["frontend", "scripts", "tests*"]),
 
     python_requires='>=3.8',
 
